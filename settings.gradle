@@ -1,0 +1,3 @@
+rootProject.name = 'vscode-termux'
+
+include ':app', ':termux-shared', ':terminal-emulator', ':terminal-view'

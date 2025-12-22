@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:installLocation="internalOnly"
+    android:sharedUserId="${TERMUX_PACKAGE_NAME}"
+    android:sharedUserLabel="@string/shared_user_label">
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Storage permissions for accessing user's files and SD card -->
+    <!-- Android 10+ uses scoped storage by default -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Android 13+ requires granular media permissions -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <application
+        android:name=".app.TermuxApplication"
+        android:allowBackup="false"
+        android:banner="@drawable/banner"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/application_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
+        android:preserveLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar"
+        tools:targetApi="r">
+
+        <activity
+            android:name=".app.TermuxActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|density|screenLayout|keyboard|keyboardHidden|navigation"
+            android:label="@string/application_name"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.TermuxActivity.DayNight.NoActionBar"
+            tools:targetApi="n">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+        <activity-alias
+            android:name=".HomeActivity"
+            android:exported="true"
+            android:targetActivity=".app.TermuxActivity">
+
+            <!-- Launch activity automatically on boot on Android Things devices -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.IOT_LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity
+            android:name=".app.activities.HelpActivity"
+            android:exported="false"
+            android:label="@string/application_name"
+            android:parentActivityName=".app.TermuxActivity"
+            android:resizeableActivity="true"
+            tools:targetApi="n" />
+
+        <activity
+            android:name=".app.activities.SettingsActivity"
+            android:exported="true"
+            android:label="@string/title_activity_termux_settings"
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
+
+        <activity
+            android:name=".app.activities.CodeServerActivity"
+            android:exported="false"
+            android:label="VS Code Server"
+            android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:screenOrientation="unspecified"
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar"
+            tools:targetApi="n" />
+
+        <activity
+            android:name=".shared.activities.ReportActivity"
+            android:theme="@style/Theme.MarkdownViewActivity.DayNight"
+            android:documentLaunchMode="intoExisting" />
+
+        <receiver
+            android:name=".app.event.SystemEventReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".shared.activities.ReportActivity$ReportActivityBroadcastReceiver"
+            android:exported="false" />
+
+
+        <service
+            android:name=".app.TermuxService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Terminal emulator service that maintains active shell sessions" />
+        </service>
+
+
+        <!-- This (or rather, value 2.1 or higher) is needed to make the Samsung Galaxy S8 mark the
+        app with "This app is optimized to run in full screen." -->
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="10.0" />
+
+
+        <!-- https://developer.samsung.com/samsung-dex/modify-optimizing.html -->
+
+        <!-- Version < 3.0. DeX Mode and Screen Mirroring support -->
+        <meta-data
+            android:name="com.samsung.android.keepalive.density"
+            android:value="true" />
+
+        <!-- Version >= 3.0. DeX Dual Mode support -->
+        <meta-data
+            android:name="com.samsung.android.multidisplay.keep_process_alive"
+            android:value="true" />
+
+        <meta-data
+            android:name="com.sec.android.support.multiwindow"
+            android:value="true" />
+
+    </application>
+
+</manifest>
