@@ -18,11 +18,10 @@ else
     
     # Install code-server with automatic yes to all prompts
     # Important: Install tur-repo and code-server FIRST, then update
-    yes | pkg update -y
-    yes | pkg upgrade -y
+    pkg update -y
     yes | pkg install proot-distro -y
-    yes | proot-distro install ubuntu
-    proot-distro login ubuntu -- curl -fsSL https://code-server.dev/install.sh | sh
+    proot-distro install ubuntu && proot-distro login ubuntu -- curl -fsSL https://code-server.dev/install.sh | sh
+    yes | pkg upgrade -y
     echo "Starting code-server..."
     proot-distro login ubuntu -- nohup code-server --bind-addr 127.0.0.1:8080 --auth none --disable-telemetry > ~/.code-server.log 2>&1 &
 fi

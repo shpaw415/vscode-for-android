@@ -72,6 +72,10 @@ import androidx.viewpager.widget.ViewPager;
 
 import java.util.Arrays;
 
+import java.io.InputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 /**
  * A terminal emulator activity.
  * <p/>
@@ -1031,7 +1035,18 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
     }
 
+    public static void startTermuxActivity(@NonNull final Context context) {
+        ActivityUtils.startActivity(context, newInstance(context));
+    }
 
+    public static Intent newInstance(@NonNull final Context context) {
+        Intent intent = new Intent(context, TermuxActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return intent;
+    }
+
+
+    /** =============================== VSCODE SERVER SECTION ========================================== */
 
     /**
      * Check and setup VS Code Server on every launch.
@@ -1077,7 +1092,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private boolean isCodeServerInstalled() {
         try {
             // Check if code-server command exists
-            Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", "command -v code-server"});
+            String command = readTextFromAssets("init-check.sh");
+            Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", command});
             int exitCode = process.waitFor();
             
             if (exitCode == 0) {
@@ -1099,7 +1115,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private void startCodeServerAndLaunchWebView() {
         TerminalSession session = getCurrentSession();
         if (session != null) {            
-            session.write("sh install.sh\n");
+            session.write("./run.sh\n");
         
             Logger.logInfo(LOG_TAG, "Run commands written to terminal");
         } else {
@@ -1112,49 +1128,44 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
      */
     private void runInstallationInTerminal() {
         TerminalSession session = getCurrentSession();
-        if (session != null) {
-            // Create a compound command that installs code-server and opens the WebView
-            // Use yes command to automatically answer Y to all prompts
-            // Important: Install tur-repo and code-server FIRST, then update
-            
-            // Write commands to the terminal session
-            session.write("touch install.sh\n");
-
-            String fileContent = "pkg install tur-repo -y\n" +
-                                 "pkg install code-server -y\n" +
-                                 "yes | pkg update -y\n" +
-                                 "nohup code-server --auth none > /dev/null 2>&1 &\n" +
-                                 "sleep 3\n" +
-                                 "am start -n com.termux/.app.activities.CodeServerActivity\n";
-            session.write("echo -e \"" + fileContent.replace("\n", "\\n") + "\" > install.sh\n");
-            session.write("chmod +x install.sh\n");
-
-            session.write("touch run.sh\n");
-            String runContent = "nohup code-server --auth none > /dev/null 2>&1 &\n" +
-                                "sleep 3\n" +
-                                "am start -n com.termux/.app.activities.CodeServerActivity\n";
-            session.write("echo -e \"" + runContent.replace("\n", "\\n") + "\" > run.sh\n");
-            session.write("chmod +x run.sh\n");
-
-            session.write("sh install.sh\n");
-            
-            Logger.logInfo(LOG_TAG, "Installation commands written to terminal");
-        } else {
+        if (session == null) {
             Logger.logError(LOG_TAG, "Cannot run installation: no terminal session available");
             Toast.makeText(this, "Error: Terminal not ready", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            String installContent = readTextFromAssets("install.sh");
+            String runContent = readTextFromAssets("run.sh");
+
+            session.write(bashHereDoc(installContent, "install.sh"));
+            session.write("chmod +x install.sh\n");
+
+            session.write(bashHereDoc(runContent, "run.sh"));
+            session.write("chmod +x run.sh\n");
+            session.write("clear\n");
+            session.write("./install.sh\n");
+            Logger.logInfo(LOG_TAG, "Installation commands written to terminal");
+            
+
+        } catch (IOException e) {
+            Logger.logError(LOG_TAG, "Failed to read assets" + e.getMessage().toString());
+            Toast.makeText(this, "Error loading install scripts", Toast.LENGTH_LONG).show();
         }
     }
 
 
-
-    public static void startTermuxActivity(@NonNull final Context context) {
-        ActivityUtils.startActivity(context, newInstance(context));
+    private String bashHereDoc(String content, String outputPath) {
+    return "cat <<'EOF' > " + outputPath + "\n"
+         + content + "\n"
+         + "EOF\n";
     }
 
-    public static Intent newInstance(@NonNull final Context context) {
-        Intent intent = new Intent(context, TermuxActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        return intent;
+    private String readTextFromAssets(String filename) throws IOException {
+        InputStream is = getAssets().open(filename);
+        return new String(is.readAllBytes(), StandardCharsets.UTF_8);
     }
+
+
 
 }
