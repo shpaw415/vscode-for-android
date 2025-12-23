@@ -110,7 +110,7 @@
             android:exported="false"
             android:label="VS Code Server"
             android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:screenOrientation="unspecified"
             android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar"

@@ -342,6 +342,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
 
         mIsOnResumeAfterOnCreate = false;
+
+        runInstallationInTerminal();
     }
 
     @Override
@@ -1072,21 +1074,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
 
-    
-    /**
-     * Start code-server (if not running) and open the WebView
-     */
-    private void startCodeServerAndLaunchWebView() {
-        TerminalSession session = getCurrentSession();
-        if (session != null) {            
-            session.write("./run.sh\n");
-        
-            Logger.logInfo(LOG_TAG, "Run commands written to terminal");
-        } else {
-            Logger.logError(LOG_TAG, "Cannot run run.sh: no terminal session available");
-            Toast.makeText(this, "Error: Terminal not ready", Toast.LENGTH_SHORT).show();
-        }
-    }
     /**
      * Run the installation commands directly in the visible terminal
      */

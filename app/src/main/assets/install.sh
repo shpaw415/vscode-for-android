@@ -39,7 +39,7 @@ echo ""
 nohup proot-distro login ubuntu -- bash /root/run.sh >/dev/null 2>&1 &
 
 echo "Waiting for VS Code Server to start..."
-sleep 10
+sleep 5
 
 # Send intent to open CodeServerActivity
 am start -n com.termux/.app.activities.CodeServerActivity

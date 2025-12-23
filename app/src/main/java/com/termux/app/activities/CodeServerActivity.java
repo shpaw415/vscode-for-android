@@ -58,6 +58,25 @@ public class CodeServerActivity extends AppCompatActivity {
         setupWebView();
         
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getSharedPreferences("app_state", MODE_PRIVATE)
+            .edit()
+            .putBoolean("in_webview", true)
+            .apply();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSharedPreferences("app_state", MODE_PRIVATE)
+            .edit()
+            .putBoolean("in_webview", true)
+            .apply();
+    }
+
     
     /**
      * Enable fullscreen mode - hide system bars
@@ -205,5 +224,9 @@ public class CodeServerActivity extends AppCompatActivity {
             mWebView.destroy();
         }
         super.onDestroy();
+        getSharedPreferences("app_state", MODE_PRIVATE)
+        .edit()
+        .putBoolean("in_webview", false)
+        .apply();
     }
 }

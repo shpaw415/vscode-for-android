@@ -1,1 +1,0 @@
-proot-distro login ubuntu -- command -v code-server
